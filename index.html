@@ -35,6 +35,10 @@
         width:100%
       }
       
+      .mapContent{
+          font-family: "Lucida Console", Courier, monospace;
+      }
+      
       .aboutContent{
           font-family: "Lucida Console", Courier, monospace;
           text-align:center;   
@@ -46,7 +50,7 @@
       }
       
       .mdc-card {
-          height:800px;
+          height:750px;
           width:600px;
           margin:15px;
       }
@@ -74,7 +78,7 @@
     <aside class="mdc-drawer mdc-drawer--modal">
     <div class="mdc-drawer__content">
       <nav class="mdc-list">
-        <a class="mdc-list-item mdc-list-item--activated" href="#map-layer" aria-current="page">
+        <a class="mdc-list-item mdc-list-item--activated" href="#map-layer" aria-current="page" id="mapTopAppTarget">
           <i class="material-icons mdc-list-item__graphic" aria-hidden="true">map</i>
           <span class="mdc-list-item__text">Map</span>
         </a>
@@ -110,13 +114,17 @@
 
 
   <main class="mdc-top-app-bar--fixed-adjust">
-      
     <div class="viewActive" id="map-layer">
         <h1 class="hidden">Map</h1>
         <div class="mdc-card mdc-elevation--z8">
             <div id="map" style="width:600px;height:700px"></div>
-            <div class="weatherContent" id="weatherSection">
-                <img alt="Weather Icon" id="weatherICON">
+            <div class="weatherContent mapContent" id="weatherSection">
+                <ul class="mdc-list">
+                    <li class="mdc-list-item" tabindex="0">
+                        <img alt="Weather Icon" id="weatherICON">
+                        <span class="mdc-list-item__text" id="weatherText">Weather update</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
@@ -213,6 +221,11 @@
             e.textContent = b.querySelector("h1").textContent;
         })
     })
+      
+    document.getElementById("mapTopAppTarget").addEventListener('click', event => {
+        crashUpdate();
+        updateWeather();
+    })
     
     let lat = 41.946733;
     let long = -87.674869;
@@ -275,39 +288,54 @@
         }
         switch(weatherType){
                 case "clear sky": iconURL = iconURL + "01";
-                flavorText="Sunny";
+                flavorText="sunny ";
                 break;
                 case "few clouds": iconURL = iconURL + "02";
-                flavorText="Mildly Cloudy";
+                flavorText="mildly cloudy";
                 break;
                 case "scattered clouds": iconURL = iconURL + "03";
-                flavorText="Scattered Clouds";
+                flavorText="scattered clouds";
                 break;
                 case "broken clouds": iconURL = iconURL + "04";
-                flavorText="Cloudy";
+                flavorText="cloudy";
                 break;
                 case "shower rain": iconURL = iconURL + "09";
-                flavorText="Slight Showers";
+                flavorText="slightly showering";
                 break;
                 case "rain": iconURL = iconURL + "10";
-                flavorText="Rain";
+                flavorText="raining";
                 break;
                 case "thunderstorm": iconURL = iconURL + "11";
-                flavorText="Thunderstorm";
+                flavorText="thunderstorming";
                 break;
                 case "snow": iconURL = iconURL + "13";
-                flavorText="Snow";
+                flavorText="snowing";
                 break;
                 case "mist": iconURL = iconURL + "50";
-                flavorText="Misting";
+                flavorText="misting";
                 break;
             default: iconURL = iconURL + "01";
-                flavorText = "Sunny";
+                flavorText = "sunny";
                 break;
         }
         iconURL = iconURL + timeOfDay + "@2x.png";
         let a = document.getElementById("weatherICON");
         a.setAttribute("src",iconURL);
+        let b = document.getElementById("weatherText");
+        let weatherString;
+        let tempNum = weatherData.main.temp;
+        if(document.getElementById("Celcius").checked)
+        {
+            tempNum = tempNum - 273.15;
+            weatherString = tempNum.toFixed(2) + " °C and " + flavorText; 
+        }
+        if(document.getElementById("Farenheit").checked)
+        {
+            tempNum = tempNum*9/5 - 459.67;
+            tempNum.toFixed(2);
+            weatherString = tempNum.toFixed(2) + " °F and " + flavorText;
+        }
+        b.textContent = weatherString;
     }  
     
     let chicagoEndpoint = "https://data.cityofchicago.org/resource/85ca-t3if.json";
