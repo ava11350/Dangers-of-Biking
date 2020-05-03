@@ -9,7 +9,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
       
   <link rel="shortcut icon" href="./favicon_io/favicon.ico" />
-
+  <link rel="manifest" href="./manifest.json">
+      
   <style>
     :root {
       --mdc-theme-primary: #789B5D;
@@ -372,12 +373,20 @@
         })
     }
     
-    
+    if ("serviceWorker" in navigator) {
+          window.addEventListener("load", function() {
+            navigator.serviceWorker
+              .register("./sw.js")
+              .then(res => console.log("service worker registered"))
+              .catch(err => console.log("service worker not registered", err));
+          });
+        }
     
     </script>
       
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQAgu7OzaiiQQL-gZMCTI9pKh6kBbVeIQ&callback=initMap">
-    </script>  
+      </script>
+      
   </body>
 </html>
