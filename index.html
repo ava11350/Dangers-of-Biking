@@ -36,8 +36,30 @@
       }
       
       .aboutContent{
-          padding-left:50px;
           font-family: "Lucida Console", Courier, monospace;
+          text-align:center;   
+      }
+      
+      .settingsContent{
+          font-family: "Lucida Console", Courier, monospace;
+          text-align:left;
+      }
+      
+      .mdc-card {
+          height:800px;
+          width:600px;
+          margin:15px;
+      }
+      
+      .viewActive{
+          display:flex;
+          padding:0px;
+          justify-content:center;
+          align-items:center;
+      }
+      
+      .weatherContent{
+          background-color:#789B5D;
       }
       
     body {margin: 0;}
@@ -89,30 +111,68 @@
 
   <main class="mdc-top-app-bar--fixed-adjust">
       
-    <div class="view" id="map-layer">
+    <div class="viewActive" id="map-layer">
         <h1 class="hidden">Map</h1>
-        <div id="map" style="width:600px;height:800px"></div>
-        <button class="mdc-button foo-button mdc-button--raised">
-        <div class="mdc-button__ripple"></div>
-        <span class="mdc-button__label">Button</span>
-        </button>
+        <div class="mdc-card mdc-elevation--z8">
+            <div id="map" style="width:600px;height:700px"></div>
+            <div class="weatherContent" id="weatherSection">
+                <img alt="Weather Icon" id="weatherICON">
+            </div>
+        </div>
     </div>
       
     <div class="view" id="settings">
         <h1 class="hidden">Settings</h1>
+        <div class="settingsContent">
+            <div class="mdc-card mdc-elevation--z8">
+                <p id="demo" style="padding-left:15px"></p>
+                <div class="mdc-card__actions" tabindex="0">
+                    <button class="mdc-button foo-button mdc-button--raised mdc-card__action mdc-card__action-button" onclick="getLocation()">
+                        <div class="mdc-button__ripple"></div>
+                        <span class="mdc-button__label">Update Location</span>
+                    </button>
+                </div>
+                <p style="padding-left:15px"><u>Temperature:</u></p>
+                <div class="mdc-form-field">
+                    <div class="mdc-radio">
+                        <input class="mdc-radio__native-control" type="radio" id="Celcius" name="temperature">
+                        <div class="mdc-radio__background">
+                            <div class="mdc-radio__outer-circle"></div>
+                            <div class="mdc-radio__inner-circle"></div>
+                        </div>
+                        <div class="mdc-radio__ripple"></div>
+                    </div>
+                    <label for="Celcius">Celcius</label>
+                </div>
+
+                <div class="mdc-form-field">
+                    <div class="mdc-radio">
+                        <input class="mdc-radio__native-control" type="radio" id="Farenheit" name="temperature" checked>
+                        <div class="mdc-radio__background">
+                            <div class="mdc-radio__outer-circle"></div>
+                            <div class="mdc-radio__inner-circle"></div>
+                        </div>
+                        <div class="mdc-radio__ripple"></div>
+                    </div>
+                    <label for="Farenheit">Farenheit</label>
+                </div>
+            </div>
+        </div>
     </div>
       
     <div class="view" id="about">
         <h1 class="hidden">About</h1>
-        <div class="aboutContent">
-            <h2>Dangers of Biking</h2>
-            <h4>Created by Ava Smith</h4>
-            <img src="./author_img.jpg" style="width:25%">
-            <p style="padding-top:15px;width:50%">This project was aimed to give bikers a better idea of safe routes through the city. Additionally, we show forecasted
-            weather to allow for safe planning. </p>
-            
-            <p style="padding-top:15px;width:50%">Currently this project only works for Chicago. We use the google maps API to render the bike layer, 
-                City of Chicago API to pull accident data, and INSERT API FOR WEATHER HERE!!! </p>
+        <div class="mdc-card mdc-elevation--z8" style="height:625px">
+            <div class="aboutContent">
+                <h2>Dangers of Biking</h2>
+                <h4>Created by Ava Smith</h4>
+                <img src="./author_img.jpg" style="width:300px;height:300px;padding-left:150px;padding-right:150px">
+                <p style="padding:15px">This project was aimed to give bikers a better idea of safe routes through the city. Additionally, we show forecasted
+                weather to allow for safe planning. </p>
+
+                <p style="padding:15px">Currently this project only works for Chicago. We use the google maps API to render the bike layer, 
+                    City of Chicago API to pull accident data, and the OpenWeatherMap API to get realtime weather updates. </p>
+            </div>
         </div>
     </div>
     
@@ -154,16 +214,138 @@
         })
     })
     
+    let lat = 41.946733;
+    let long = -87.674869;
+      
+    /* Geolocation updater */  
+    let x = document.getElementById("demo");
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);  
+      } else {
+        x.innerHTML = "Geolocation is not supported by this browser.";
+      }
+    } 
+      
+    function showPosition(position) {
+      x.innerHTML = "Latitude: " + position.coords.latitude +
+      "<br>Longitude: " + position.coords.longitude;
+      lat = position.coords.latitude;
+      long = position.coords.longitude;
+    }    
+    
+    getLocation();  
+      
     /* Map initializer */      
     function initMap() {
         let map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 14,
-          center: {lat: 42.3726399, lng: -71.1096528}
+          zoom: 13,
+          center: {lat: lat, lng: long}
         });
 
         let bikeLayer = new google.maps.BicyclingLayer();
         bikeLayer.setMap(map);
-      }
+    }
+    
+    let weatherKey = "ae2f450aa5475c3f63468e66c4ef93b2";  
+    let weatherEndpoint = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + long + "&appid=" + weatherKey;
+    let weatherData;
+    fetch(weatherEndpoint)
+            .then(response => response.json())
+            .then(json => {
+                weatherData = json;
+                updateWeather();
+            })
+            .catch(err => alert(err))
+    
+    let iconURL;
+    let flavorText;
+    const updateWeather = () => {
+        iconURL = "https://openweathermap.org/img/wn/";
+        let weatherType = weatherData.weather[0].description;
+        let timeOfDay = weatherData.dt;
+        let sunUp = weatherData.sys.sunrise;
+        let sunDown = weatherData.sys.sunset;
+        if(timeOfDay>sunUp && timeOfDay<sunDown)
+        {
+            timeOfDay="d";
+        }else
+        {
+            timeOfDay="n";
+        }
+        switch(weatherType){
+                case "clear sky": iconURL = iconURL + "01";
+                flavorText="Sunny";
+                break;
+                case "few clouds": iconURL = iconURL + "02";
+                flavorText="Mildly Cloudy";
+                break;
+                case "scattered clouds": iconURL = iconURL + "03";
+                flavorText="Scattered Clouds";
+                break;
+                case "broken clouds": iconURL = iconURL + "04";
+                flavorText="Cloudy";
+                break;
+                case "shower rain": iconURL = iconURL + "09";
+                flavorText="Slight Showers";
+                break;
+                case "rain": iconURL = iconURL + "10";
+                flavorText="Rain";
+                break;
+                case "thunderstorm": iconURL = iconURL + "11";
+                flavorText="Thunderstorm";
+                break;
+                case "snow": iconURL = iconURL + "13";
+                flavorText="Snow";
+                break;
+                case "mist": iconURL = iconURL + "50";
+                flavorText="Misting";
+                break;
+            default: iconURL = iconURL + "01";
+                flavorText = "Sunny";
+                break;
+        }
+        iconURL = iconURL + timeOfDay + "@2x.png";
+        let a = document.getElementById("weatherICON");
+        a.setAttribute("src",iconURL);
+    }  
+    
+    let chicagoEndpoint = "https://data.cityofchicago.org/resource/85ca-t3if.json";
+    let chiData;
+
+    fetch(chicagoEndpoint)
+      .then(response => response.json())
+      .then(json => {
+            chiData=json;
+            crashUpdate();
+       })
+      .catch(err => alert(err))
+    
+    const crashUpdate = () => {
+        map = new google.maps.Map(document.getElementById('map'), {
+           zoom: 13,
+          center: {lat: lat, lng: long}
+        });
+
+        let bikeLayer = new google.maps.BicyclingLayer();
+        bikeLayer.setMap(map);
+        
+        chiData.forEach(item => {
+            let cityCircle = new google.maps.Circle({
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35,
+                map:map,
+                center: {lat: parseFloat(item.latitude), lng: parseFloat(item.longitude)},
+                radius: 35
+            });  
+        })
+    }
+    
+    
+    
     </script>
       
     <script async defer
